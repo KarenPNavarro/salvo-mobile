@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 
 export default function PermissionsScreen() {
   const router = useRouter();
@@ -85,7 +86,6 @@ export default function PermissionsScreen() {
         ))}
       </View>
 
-      {/* Continue button */}
       <TouchableOpacity
         style={styles.primaryButton}
         onPress={() => router.push('/face-id')}
@@ -93,7 +93,7 @@ export default function PermissionsScreen() {
         <Text style={styles.primaryButtonText}>Continue</Text>
       </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   );
 }
 
