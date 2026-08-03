@@ -166,6 +166,9 @@ const styles = StyleSheet.create({
     color: '#7de1bd',
     fontSize: 12,
   },
+  content: {
+    paddingBottom: 24,
+  },
   primaryButton: {
     backgroundColor: '#7de1bd',
     borderRadius: 14,
