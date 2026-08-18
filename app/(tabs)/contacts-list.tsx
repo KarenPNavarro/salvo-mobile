@@ -1,60 +1,129 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-
-const contacts = [
-  { id: '1', name: 'Sara Johnson', relationship: 'Family', status: 'Accepted' },
-  { id: '2', name: 'John Smith', relationship: 'Friend', status: 'Pending' },
-  { id: '3', name: 'Emily Davis', relationship: 'Partner', status: 'Accepted' },
-];
+import { CaretRight, Plus, UserPlus } from 'phosphor-react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { IconButton } from '../../components/ui/IconButton';
+import { Screen } from '../../components/ui/Screen';
+import { colors, fonts, radii, spacing, type } from '../../constants/theme';
+import { useContacts, type Contact } from '../../contexts/ContactsContext';
 
 export default function ContactsListScreen() {
   const router = useRouter();
+  const { contacts, maxContacts } = useContacts();
+
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
+    <Screen contentStyle={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Contacts</Text>
-        <TouchableOpacity
-          onPress={() => router.push('/add-contact')}
-          style={styles.addButton}
-        >
-          <Text style={styles.addIcon}>+</Text>
-        </TouchableOpacity>
+        <View>
+          <Text style={type.screenTitle}>Contacts</Text>
+          <Text style={[type.meta, styles.subtitle]}>
+            {contacts.length} of {maxContacts} trusted contacts
+          </Text>
+        </View>
+        <IconButton variant="violet" onPress={() => router.push('/add-contact')}>
+          <Plus size={20} color="#FFFFFF" weight="bold" />
+        </IconButton>
       </View>
-      <ScrollView>
-        {contacts.map((contact) => (
-          <View key={contact.id} style={styles.contactRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{contact.name[0]}</Text>
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>{contact.name}</Text>
-              <Text style={styles.contactRel}>{contact.relationship}</Text>
-            </View>
-            <Text style={[styles.status, contact.status === 'Accepted' ? styles.accepted : styles.pending]}>
-              {contact.status}
-            </Text>
-          </View>
+
+      <View style={styles.capacityBar}>
+        {Array.from({ length: maxContacts }).map((_, i) => (
+          <View
+            key={i}
+            style={[styles.capacitySegment, i < contacts.length && styles.capacitySegmentFilled]}
+          />
         ))}
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
+        {contacts.map((contact) => (
+          <ContactRow key={contact.id} contact={contact} onPress={() => router.push(`/contact/${contact.id}`)} />
+        ))}
+
+        {contacts.length < maxContacts && (
+          <TouchableOpacity
+            style={styles.addRow}
+            onPress={() => router.push('/add-contact')}
+            activeOpacity={0.75}
+          >
+            <UserPlus size={18} color={colors.mint} />
+            <Text style={styles.addRowText}>Add a contact</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
-    </View>
+    </Screen>
   );
 }
 
+function ContactRow({ contact, onPress }: { contact: Contact; onPress: () => void }) {
+  const accepted = contact.status === 'Accepted';
+  return (
+    <TouchableOpacity style={styles.row} onPress={onPress} activeOpacity={0.75}>
+      <View style={styles.avatar}>
+        <Text style={styles.avatarText}>{initials(contact.name)}</Text>
+      </View>
+      <View style={styles.rowInfo}>
+        <Text style={type.cardTitle}>{contact.name}</Text>
+        <Text style={type.meta}>
+          {contact.relationship} · {contact.phone}
+        </Text>
+      </View>
+      <Text style={[styles.statusText, accepted ? styles.statusAccepted : styles.statusPending]}>
+        {contact.status}
+      </Text>
+      <CaretRight size={16} color="rgba(255,255,255,0.3)" />
+    </TouchableOpacity>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1b0067', paddingHorizontal: 24, paddingTop: 60 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#ffffff' },
-  addButton: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(125,225,189,0.15)', alignItems: 'center', justifyContent: 'center' },
-  addIcon: { color: '#7de1bd', fontSize: 24, fontWeight: 'bold' },
-  contactRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 16, padding: 16, marginBottom: 12 },
-  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(125,225,189,0.15)', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  avatarText: { color: '#7de1bd', fontSize: 18, fontWeight: 'bold' },
-  contactInfo: { flex: 1 },
-  contactName: { color: '#ffffff', fontSize: 16, fontWeight: '600' },
-  contactRel: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
-  status: { fontSize: 13, fontWeight: '500' },
-  accepted: { color: '#7de1bd' },
-  pending: { color: 'rgba(255,255,255,0.4)' },
+  container: { paddingTop: 8 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 },
+  subtitle: { marginTop: 4 },
+  capacityBar: { flexDirection: 'row', gap: 6, marginBottom: 20 },
+  capacitySegment: { flex: 1, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.09)' },
+  capacitySegmentFilled: { backgroundColor: colors.mint },
+  list: { gap: spacing.cardGap, paddingBottom: 24 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.surfaceFill,
+    borderWidth: 1,
+    borderColor: colors.surfaceBorder,
+    borderRadius: radii.card,
+    padding: spacing.cardInset,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(125,225,189,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: { fontFamily: fonts.heading, fontSize: 15, color: colors.mint },
+  rowInfo: { flex: 1, gap: 2 },
+  statusText: { fontFamily: fonts.heading, fontSize: 11.5 },
+  statusAccepted: { color: colors.mint },
+  statusPending: { color: colors.amber },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(125,225,189,0.3)',
+    borderStyle: 'dashed',
+    borderRadius: radii.card,
+    paddingVertical: 18,
+  },
+  addRowText: { fontFamily: fonts.heading, fontSize: 14.5, color: colors.mint },
 });

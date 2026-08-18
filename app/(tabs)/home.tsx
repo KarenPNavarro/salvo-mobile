@@ -1,67 +1,128 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { Bell, HandTap, MapPin, ShieldCheck, VideoCamera } from 'phosphor-react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { IconButton } from '../../components/ui/IconButton';
+import { Pill } from '../../components/ui/Pill';
+import { ProgressRing } from '../../components/ui/ProgressRing';
+import { PulseRings } from '../../components/ui/PulseRings';
+import { Screen } from '../../components/ui/Screen';
+import { colors, fonts, spacing, type } from '../../constants/theme';
+import { useContacts } from '../../contexts/ContactsContext';
+import { useDevice } from '../../contexts/DeviceContext';
+
+const USER_NAME = 'Jordan';
+const LIVE_SINCE = '7:02 AM';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const device = useDevice();
+  const { contacts } = useContacts();
+  const standbyCount = contacts.filter((c) => c.status === 'Accepted').length;
+
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <Text style={styles.brand}>Salvō</Text>
-      <Text style={styles.tagline}>You're protected</Text>
-      <View style={styles.deviceCard}>
-        <View style={styles.deviceCardLeft}>
-          <Text style={styles.deviceCardIcon}>📡</Text>
-          <View>
-            <Text style={styles.deviceCardName}>SALVO_001</Text>
-            <Text style={styles.deviceCardStatus}>Connected</Text>
-            <Text style={styles.deviceCardSignal}>Signal: Strong</Text>
+    <Screen scroll contentStyle={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.logo}>Salvō</Text>
+        <IconButton onPress={() => {}}>
+          <Bell size={20} color={colors.text} />
+        </IconButton>
+      </View>
+
+      <Pill label="PROTECTED" tone="mint" dot style={styles.statusPill} />
+
+      <Text style={[type.hero, styles.hero]}>You're covered,{'\n'}{USER_NAME}</Text>
+      <Text style={[type.meta, styles.heroMeta]}>
+        Live since {LIVE_SINCE} · {standbyCount} contacts on standby
+      </Text>
+
+      <Card style={styles.deviceCard}>
+        <View style={styles.deviceRow}>
+          <ProgressRing size={64} strokeWidth={7} progress={device.battery / 100}>
+            <Text style={styles.batteryPct}>{device.battery}%</Text>
+            <Text style={styles.batteryLabel}>BATT</Text>
+          </ProgressRing>
+          <View style={styles.deviceInfo}>
+            <Text style={type.cardTitle}>{device.name}</Text>
+            <Text style={styles.connected}>Connected</Text>
           </View>
         </View>
-        <Text style={styles.battery}>100%</Text>
+        <View style={styles.pillRow}>
+          <Pill label="Paired" tone="mint" dot />
+          <Pill label="Signal strong" tone="mint" />
+        </View>
+      </Card>
+
+      <View style={styles.activateWrap}>
+        <View style={styles.activateAnchor}>
+          <View style={styles.pulseOverlay}>
+            <PulseRings size={72} color={colors.mint} />
+          </View>
+          <View style={styles.activateButton}>
+            <HandTap size={26} color={colors.mint} weight="fill" />
+          </View>
+        </View>
+        <Text style={[type.cardTitle, styles.activateTitle]}>Pull the ring to activate</Text>
+        <Text style={[type.meta, styles.activateMeta]}>
+          Emergency mode fires instantly — no phone needed
+        </Text>
       </View>
-      <Text style={styles.hint}>Press button on device to activate</Text>
-      <Text style={styles.hintSub}>Emergency mode will activate instantly</Text>
-      <TouchableOpacity
-        style={styles.alarmButton}
+
+      <Button
+        label="Test emergency mode"
+        variant="danger"
+        icon={<ShieldCheck size={18} color="#FFFFFF" weight="fill" />}
         onPress={() => router.push('/emergency-alert')}
-      >
-        <Text style={styles.alarmButtonText}>Test Emergency Mode</Text>
-      </TouchableOpacity>
-      <View style={styles.statusRow}>
-        <View style={styles.statusCard}>
-          <Text style={styles.statusIcon}>📍</Text>
-          <Text style={styles.statusLabel}>Location</Text>
-          <Text style={styles.statusValue}>GPS active</Text>
-        </View>
-        <View style={styles.statusCard}>
-          <Text style={styles.statusIcon}>📷</Text>
-          <Text style={styles.statusLabel}>Recording</Text>
-          <Text style={styles.statusValue}>Auto-record ready</Text>
-        </View>
+        style={styles.emergencyButton}
+      />
+
+      <View style={styles.tilesRow}>
+        <Card style={styles.tile}>
+          <MapPin size={22} color={colors.mint} />
+          <Text style={type.cardTitle}>Location</Text>
+          <Text style={type.meta}>GPS tracking active</Text>
+        </Card>
+        <Card style={styles.tile}>
+          <VideoCamera size={22} color={colors.mint} />
+          <Text style={type.cardTitle}>Recording</Text>
+          <Text style={type.meta}>Auto-record ready</Text>
+        </Card>
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1b0067', paddingHorizontal: 24, paddingTop: 60, paddingBottom: 20 },
-  brand: { fontSize: 32, fontWeight: 'bold', color: '#7de1bd', marginBottom: 4 },
-  tagline: { fontSize: 16, color: 'rgba(255,255,255,0.6)', marginBottom: 24 },
-  deviceCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 16, padding: 20, marginBottom: 24 },
-  deviceCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  deviceCardIcon: { fontSize: 24 },
-  deviceCardName: { color: '#ffffff', fontWeight: '600', fontSize: 16 },
-  deviceCardStatus: { color: '#7de1bd', fontSize: 13 },
-  deviceCardSignal: { color: 'rgba(255,255,255,0.5)', fontSize: 13 },
-  battery: { color: '#7de1bd', fontSize: 16, fontWeight: '600' },
-  hint: { color: 'rgba(255,255,255,0.7)', fontSize: 15, textAlign: 'center', marginBottom: 4 },
-  hintSub: { color: 'rgba(255,255,255,0.4)', fontSize: 13, textAlign: 'center', marginBottom: 24 },
-  alarmButton: { backgroundColor: '#C0392B', borderRadius: 14, paddingVertical: 20, alignItems: 'center', marginBottom: 24 },
-  alarmButtonText: { color: '#ffffff', fontSize: 17, fontWeight: '700' },
-  statusRow: { flexDirection: 'row', gap: 12 },
-  statusCard: { flex: 1, backgroundColor: 'rgba(255,255,255,0.07)', borderRadius: 16, padding: 16, alignItems: 'center', gap: 4 },
-  statusIcon: { fontSize: 24 },
-  statusLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 12 },
-  statusValue: { color: '#ffffff', fontSize: 13, fontWeight: '500', textAlign: 'center' },
+  container: { paddingTop: 8 },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  logo: { fontFamily: fonts.heading, fontSize: 22, color: colors.mint },
+  statusPill: { marginBottom: 14 },
+  hero: { lineHeight: 36 },
+  heroMeta: { marginTop: 8, marginBottom: 18 },
+  deviceCard: { marginBottom: 22, gap: 16 },
+  deviceRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  batteryPct: { fontFamily: fonts.heading, fontSize: 15, color: colors.mint },
+  batteryLabel: { fontFamily: fonts.heading, fontSize: 8, color: colors.textFaint, letterSpacing: 0.5 },
+  deviceInfo: { gap: 2 },
+  connected: { fontFamily: fonts.body, fontSize: 13, color: colors.mint },
+  pillRow: { flexDirection: 'row', gap: 8 },
+  activateWrap: { alignItems: 'center', marginBottom: 22, paddingVertical: 8 },
+  activateAnchor: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center' },
+  pulseOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  activateButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(125,225,189,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(125,225,189,0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activateTitle: { marginTop: 16 },
+  activateMeta: { marginTop: 4, textAlign: 'center' },
+  emergencyButton: { marginBottom: 18 },
+  tilesRow: { flexDirection: 'row', gap: spacing.cardGap },
+  tile: { flex: 1, gap: 6 },
 });
